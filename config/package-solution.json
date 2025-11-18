@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "ipg-contenthero-client-side-solution",
+    "id": "e61ba880-bd40-4c62-9bc3-0515c4e5c198",
+    "version": "0.0.6.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "IPG ContentHero",
+      "websiteUrl": "https://www.ipgphotonics.com",
+      "privacyUrl": "https://www.ipgphotonics.com/privacy",
+      "termsOfUseUrl": "https://www.ipgphotonics.com",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "Dual-story hero section for product storytelling."
+      },
+      "longDescription": {
+        "default": "The IPG Content Hero web part renders alternating feature stories with precision typography, asymmetric imagery, and a Fluent UI configuration experience."
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "IPG Content Hero Feature",
+        "description": "Activates the IPG Content Hero dual story web part.",
+        "id": "85503018-2a81-4e4c-a4f7-ffcd4ccb2f04",
+        "version": "0.0.6.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/ipg-contenthero.sppkg"
+  }
+}
