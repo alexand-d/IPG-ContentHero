@@ -10,27 +10,22 @@ const fontFamilyMap: Record<FontFamilyOption, string> = {
   montserrat: '"Montserrat", "Segoe UI", sans-serif'
 };
 
-const renderBullets = (
-  bullets: string[],
-  fontFamily: FontFamilyOption,
-  fontSize: number
-): React.ReactNode[] =>
-  bullets.map((bullet, index) => (
-    <li
-      key={`${bullet}-${index}`}
-      style={{
-        fontFamily: fontFamilyMap[fontFamily],
-        fontSize
-      }}
-    >
-      {bullet}
-    </li>
-  ));
+const ensureRichText = (value?: string, fallback?: string): string => {
+  if (value && value.trim().length > 0) {
+    return value;
+  }
+  if (!fallback) {
+    return '';
+  }
+  return `<p>${fallback}</p>`;
+};
 
 const IpgContenthero: React.FC<IIpgContentheroProps> = ({
   stories,
   isEditMode,
-  onUpdateStories
+  onUpdateStories,
+  backgroundColor,
+  context
 }) => {
   const [isPanelOpen, setIsPanelOpen] = React.useState<boolean>(false);
 
@@ -54,34 +49,42 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
         className={`${styles.storyRow} ${isImageLeft ? styles.reversed : ''}`}
       >
         <div className={styles.storyColumn} style={textStyle(story)}>
-          <h3
+          <div
+            className={styles.storyTitle}
             style={{
               fontFamily: fontFamilyMap[story.textFrame.titleFont.family],
               fontSize: story.textFrame.titleFont.size
             }}
-          >
-            {story.title}
-          </h3>
-          <p
+            dangerouslySetInnerHTML={{
+              __html: ensureRichText(story.titleRichText, story.title)
+            }}
+          />
+          <div
+            className={styles.storyBody}
             style={{
               fontFamily: fontFamilyMap[story.textFrame.bodyFont.family],
               fontSize: story.textFrame.bodyFont.size
             }}
-          >
-            {story.content}
-          </p>
-          <ul
-            className={styles.storyBullets}
+            dangerouslySetInnerHTML={{
+              __html: ensureRichText(story.bodyRichText, story.content)
+            }}
+          />
+          <div
+            className={`${styles.storyBullets} ${
+              story.showBullets ? '' : styles.bulletsAsText
+            }`}
             style={{
-              '--accentColor': story.accentColor
+              '--accentColor': story.accentColor,
+              fontFamily: fontFamilyMap[story.textFrame.bulletFont.family],
+              fontSize: story.textFrame.bulletFont.size
             } as React.CSSProperties}
-          >
-            {renderBullets(
-              story.bullets,
-              story.textFrame.bulletFont.family,
-              story.textFrame.bulletFont.size
-            )}
-          </ul>
+            dangerouslySetInnerHTML={{
+              __html: ensureRichText(
+                story.bulletsRichText,
+                `<ul>${story.bullets.map((item) => `<li>${item}</li>`).join('')}</ul>`
+              )
+            }}
+          />
         </div>
         <div className={styles.storyColumn}>
           <div
@@ -104,7 +107,7 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
   };
 
   return (
-    <section className={styles.ipgContenthero}>
+    <section className={styles.ipgContenthero} style={{ background: backgroundColor }}>
       <div className={styles.sectionContent}>
         {isEditMode && (
           <div className={styles.toolbar}>
@@ -128,6 +131,7 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
           isOpen={isPanelOpen}
           stories={stories}
           onDismiss={() => setIsPanelOpen(false)}
+          context={context}
           onSave={(updatedStories) => {
             onUpdateStories(updatedStories);
             setIsPanelOpen(false);

@@ -19,12 +19,11 @@ IPG Content Hero is a SharePoint Framework web part that renders a dual-row feat
 
 ## Features
 
-- **Dual Story layout:** Two stacked feature stories render with alternating text/image columns, responsive behavior down to mobile, and styling that supports a single rounded image corner on highlight rows.
-- **Fluent UI configuration hub:** Editors click **Manage stories** (visible in edit mode) to open a panel with a slide-management list, individual column configurations, and Fluent UI form controls as shown in the UX mock.
-- **Per-story controls:** Title/body editors, multiline bullet entry, Sans Regular or Montserrat Bold font selection, font-size sliders, text-frame width/height/position sliders, and image width/height/position sliders satisfy the requested X/Y adjustments.
-- **Image picker:** Supports uploading local files (stored as data URLs) or supplying external URLs plus accessible alt text. Each story can toggle the asymmetric rounded corner highlight.
-- **Full-width safe:** The layout stretches to full-width sections while constraining the content region for readability.
-- **Automated versioning & packaging:** `npm run build` and `npm run package` automatically bump the semantic version, sync the `.sppkg` package (`solution/ipg-contenthero.sppkg`), and run the SPFx toolchain.
+- **Dual Story layout:** Alternating text/image rows match the UX mock with responsive behavior and the single-corner highlight on elevated stories.
+- **In-surface authoring:** **Manage stories** hosts rich text editors for title/body/bullets, a toggle to switch bullets → text, plus reorder/delete/add actions and an image picker that supports URLs, uploads, and SharePoint stock photos.
+- **Web part setup controls:** The property pane now houses the sliders, toggles, and typography fields (image/text X/Y offsets, widths, heights, Sans/Montserrat font pickers, and the asymmetric-corner toggle) so layout tweaks live with the rest of the page configuration.
+- **Background color picker:** Choose the section background color directly inside the property pane.
+- **Automated versioning & packaging:** `npm run build` / `npm run package` bump the semantic version automatically and produce `solution/ipg-contenthero.sppkg`.
 
 ## Getting Started
 
@@ -53,13 +52,10 @@ IPG Content Hero is a SharePoint Framework web part that renders a dual-row feat
 ## Configuration experience
 
 1. Edit a SharePoint page and add the **IPG Content Hero** web part.
-2. Click **Manage stories** inside the web part to open the Fluent UI panel:
-   - Left rail lists all stories with up/down ordering controls, delete, and **Add story**.
-   - Right side provides per-story editors for titles, body copy, and bullet lists (one item per line).
-   - Image section includes URL input, local upload button, alt-text entry, asymmetric corner toggle, and X/Y/Width/Height sliders.
-   - Text frame section exposes X/Y offset sliders plus width/height controls to fine tune spacing.
-   - Typography controls let you pick Sans Regular or Montserrat Bold for title, body, and bullets, with dedicated size sliders.
-3. Save inside the panel to persist changes back to the SharePoint property bag. Each story is stored independently so future additions can be configured without affecting existing ones.
+2. Use the in-surface toolbar buttons:
+   - **Manage stories** opens the Fluent UI panel for content entry. The left rail lists every card (with reorder/delete/add), while the right side provides rich text editors for title/body/bullets, the new “Display bullet points” toggle, and the image picker (URL field, upload button, SharePoint stock image picker, and alt-text entry).
+   - **Web part settings (gear icon)** hosts the Layout & Typography custom field and the background color picker. Select a story in the left rail, then tweak the asymmetric-corner toggle, image/text X/Y offsets, frame sizes, and Sans/Montserrat font options for that row. Changes apply immediately while the page preview stays in sync.
+3. Save inside the Manage panel to persist textual content. Layout/typography/background changes are saved automatically via the property pane.
 
 ## Packaging output
 

@@ -17,12 +17,27 @@ export interface ISizeControl {
   height: number;
 }
 
+export interface IFrameSettings {
+  position: ICoordinateControl;
+  size: ISizeControl;
+}
+
+export interface IStoryTextFrame extends IFrameSettings {
+  titleFont: IFontSettings;
+  bodyFont: IFontSettings;
+  bulletFont: IFontSettings;
+}
+
 export interface IStoryCard {
   id: string;
   title: string;
   content: string;
   bullets: string[];
   accentColor: string;
+  showBullets: boolean;
+  titleRichText?: string;
+  bodyRichText?: string;
+  bulletsRichText?: string;
   image: {
     url: string;
     altText: string;
@@ -30,14 +45,13 @@ export interface IStoryCard {
     position: ICoordinateControl;
     size: ISizeControl;
   };
-  textFrame: {
-    position: ICoordinateControl;
-    size: ISizeControl;
-    titleFont: IFontSettings;
-    bodyFont: IFontSettings;
-    bulletFont: IFontSettings;
-  };
+  textFrame: IStoryTextFrame;
 }
+
+const toParagraph = (value: string): string => `<p>${value}</p>`;
+
+const listToHtml = (items: string[]): string =>
+  `<ul>${items.map((item) => `<li>${item}</li>`).join('')}</ul>`;
 
 const defaultStories = [
   {
@@ -80,6 +94,15 @@ const newStory = (index: number): IStoryCard => ({
       'Add a differentiator'
     ],
   accentColor: '#f26c2b',
+  showBullets: true,
+  titleRichText: toParagraph(defaultStories[index]?.title ?? 'New story title'),
+  bodyRichText: toParagraph(
+    defaultStories[index]?.content ??
+      'Use the configuration panel to provide an overview for this story card.'
+  ),
+  bulletsRichText: listToHtml(
+    defaultStories[index]?.bullets?.slice() ?? ['Add a benefit', 'Add a differentiator']
+  ),
   image: {
     url: defaultStories[index]?.imageUrl ?? '',
     altText: defaultStories[index]?.imageAlt ?? 'Story image',

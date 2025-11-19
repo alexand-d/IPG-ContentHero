@@ -1,42 +1,54 @@
 import * as React from 'react';
 import {
   DefaultButton,
-  Dropdown,
-  FontIcon,
   IconButton,
-  IDropdownOption,
   Panel,
   PanelType,
   PrimaryButton,
-  Slider,
   Stack,
   TextField,
   Toggle
 } from '@fluentui/react';
 import styles from './IpgContenthero.module.scss';
-import {
-  createStoryTemplate,
-  FontFamilyOption,
-  IStoryCard
-} from './StoryModels';
+import { createStoryTemplate, IStoryCard } from './StoryModels';
+import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
+import { RichText } from '@pnp/spfx-controls-react/lib/RichText';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
+import type { BaseComponentContext as LegacyBaseComponentContext } from '@pnp/spfx-controls-react/node_modules/@microsoft/sp-component-base';
 
 export interface IStoryManagerPanelProps {
   isOpen: boolean;
   stories: IStoryCard[];
   onDismiss: () => void;
   onSave: (stories: IStoryCard[]) => void;
+  context: WebPartContext;
 }
 
-const fontOptions: IDropdownOption<FontFamilyOption>[] = [
-  { key: 'sans', text: 'Sans Regular' },
-  { key: 'montserrat', text: 'Montserrat Bold' }
-];
+const stripHtml = (value?: string): string =>
+  (value || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const extractListItems = (html: string): string[] => {
+  const matches = html.match(/<li[^>]*>(.*?)<\/li>/gi);
+  if (matches && matches.length) {
+    return matches.map((item) => stripHtml(item)).filter(Boolean);
+  }
+
+  return stripHtml(html)
+    .split(/\n|\. /)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
 
 const ImagePicker: React.FC<{
   storyId: string;
   imageUrl: string;
+  context: WebPartContext;
   onChange: (storyId: string, newUrl: string) => void;
-}> = ({ storyId, imageUrl, onChange }) => {
+}> = ({ storyId, imageUrl, context, onChange }) => {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleSelectFile = (): void => {
@@ -59,21 +71,42 @@ const ImagePicker: React.FC<{
   };
 
   return (
-    <div className={styles.imagePicker}>
-      <TextField
-        label="Image URL"
-        value={imageUrl}
-        onChange={(_, newValue) => onChange(storyId, newValue || '')}
+    <>
+      <div className={styles.imagePicker}>
+        <TextField
+          label="Image URL"
+          value={imageUrl}
+          onChange={(_, newValue) => onChange(storyId, newValue || '')}
+        />
+        <DefaultButton text="Upload image" onClick={handleSelectFile} />
+        <input
+          type="file"
+          ref={inputRef}
+          hidden
+          accept="image/*"
+          onChange={handleFileChange}
+        />
+      </div>
+      <FilePicker
+        buttonLabel="Use SharePoint stock image"
+        accepts={['.png', '.jpg', '.jpeg', '.svg', '.gif', '.webp']}
+        context={context as unknown as LegacyBaseComponentContext}
+        hideWebSearchTab
+        hideRecentTab
+        onSave={(results: IFilePickerResult | IFilePickerResult[]) => {
+          const resultList = Array.isArray(results) ? results : [results];
+          const first = resultList[0];
+          if (first) {
+            if (first.fileAbsoluteUrl) {
+              onChange(storyId, first.fileAbsoluteUrl);
+            } else if (first.previewDataUrl) {
+              onChange(storyId, first.previewDataUrl);
+            }
+          }
+        }}
+        onChange={(): void => undefined}
       />
-      <DefaultButton text="Upload image" onClick={handleSelectFile} />
-      <input
-        type="file"
-        ref={inputRef}
-        hidden
-        accept="image/*"
-        onChange={handleFileChange}
-      />
-    </div>
+    </>
   );
 };
 
@@ -81,7 +114,8 @@ const StoryManagerPanel: React.FC<IStoryManagerPanelProps> = ({
   isOpen,
   stories,
   onDismiss,
-  onSave
+  onSave,
+  context
 }) => {
   const [draftStories, setDraftStories] = React.useState<IStoryCard[]>(stories);
   const [activeId, setActiveId] = React.useState<string>(stories?.[0]?.id);
@@ -149,7 +183,9 @@ const StoryManagerPanel: React.FC<IStoryManagerPanelProps> = ({
           onClick={() => setActiveId(story.id)}
         >
           <div className={styles.storyListContent}>
-            <span className={styles.storyListTitle}>{story.title || `Story ${index + 1}`}</span>
+            <span className={styles.storyListTitle}>
+              {stripHtml(story.titleRichText || story.title) || `Story ${index + 1}`}
+            </span>
             <span className={styles.storyListSubtitle}>#{index + 1}</span>
           </div>
           <div className={styles.storyListActions}>
@@ -192,151 +228,67 @@ const StoryManagerPanel: React.FC<IStoryManagerPanelProps> = ({
     </div>
   );
 
-  const renderTypographyControls = (
-    label: string,
-    fontSettings: { family: FontFamilyOption; size: number },
-    onChange: (font: { family: FontFamilyOption; size: number }) => void
-  ): React.ReactNode => (
-    <Stack tokens={{ childrenGap: 8 }}>
-      <Dropdown
-        label={`${label} font`}
-        options={fontOptions}
-        selectedKey={fontSettings.family}
-        onChange={(_, option) =>
-          option &&
-          onChange({
-            ...fontSettings,
-            family: option.key as FontFamilyOption
-          })
-        }
-      />
-      <Slider
-        min={12}
-        max={48}
-        label={`${label} size`}
-        value={fontSettings.size}
-        showValue
-        onChange={(value) =>
-          onChange({
-            ...fontSettings,
-            size: value
-          })
-        }
-      />
-    </Stack>
-  );
-
-  const renderPositionControls = (
-    label: string,
-    position: { x: number; y: number },
-    onChange: (coords: { x: number; y: number }) => void
-  ): React.ReactNode => (
-    <Stack horizontal tokens={{ childrenGap: 12 }}>
-      <Slider
-        label={`${label} X`}
-        min={-120}
-        max={120}
-        value={position.x}
-        showValue
-        onChange={(value) =>
-          onChange({
-            ...position,
-            x: value
-          })
-        }
-      />
-      <Slider
-        label={`${label} Y`}
-        min={-120}
-        max={120}
-        value={position.y}
-        showValue
-        onChange={(value) =>
-          onChange({
-            ...position,
-            y: value
-          })
-        }
-      />
-    </Stack>
-  );
-
-  const renderSizeControls = (
-    label: string,
-    size: { width: number; height: number },
-    onChange: (next: { width: number; height: number }) => void,
-    widthConfig = { min: 40, max: 120 },
-    heightConfig = { min: 160, max: 640 }
-  ): React.ReactNode => (
-    <Stack horizontal tokens={{ childrenGap: 12 }}>
-      <Slider
-        label={`${label} width (%)`}
-        min={widthConfig.min}
-        max={widthConfig.max}
-        value={size.width}
-        showValue
-        onChange={(value) =>
-          onChange({
-            ...size,
-            width: value
-          })
-        }
-      />
-      <Slider
-        label={`${label} height (px)`}
-        min={heightConfig.min}
-        max={heightConfig.max}
-        value={size.height}
-        showValue
-        onChange={(value) =>
-          onChange({
-            ...size,
-            height: value
-          })
-        }
-      />
-    </Stack>
-  );
-
   const panelBody = activeStory ? (
     <div className={styles.storyEditor}>
-      <TextField
-        label="Story title"
-        value={activeStory.title}
-        onChange={(_, value) =>
+      <Stack tokens={{ childrenGap: 8 }}>
+        <span className={styles.editorLabel}>Story title</span>
+        <RichText
+          isEditMode={true}
+          value={activeStory.titleRichText}
+          onChange={(value) => {
+            updateStory(activeStory.id, (story) => ({
+              ...story,
+              titleRichText: value,
+              title: stripHtml(value) || story.title
+            }));
+            return value;
+          }}
+        />
+      </Stack>
+      <Stack tokens={{ childrenGap: 8 }}>
+        <span className={styles.editorLabel}>Body content</span>
+        <RichText
+          isEditMode={true}
+          value={activeStory.bodyRichText}
+          onChange={(value) => {
+            updateStory(activeStory.id, (story) => ({
+              ...story,
+              bodyRichText: value,
+              content: stripHtml(value) || story.content
+            }));
+            return value;
+          }}
+        />
+      </Stack>
+      <Stack tokens={{ childrenGap: 8 }}>
+        <span className={styles.editorLabel}>Bullet points (one per line)</span>
+        <RichText
+          isEditMode={true}
+          value={activeStory.bulletsRichText}
+          onChange={(value) => {
+            updateStory(activeStory.id, (story) => ({
+              ...story,
+              bulletsRichText: value,
+              bullets: extractListItems(value)
+            }));
+            return value;
+          }}
+        />
+      </Stack>
+      <Toggle
+        label="Display bullet points"
+        checked={activeStory.showBullets}
+        onChange={(_, checked) =>
           updateStory(activeStory.id, (story) => ({
             ...story,
-            title: value || ''
-          }))
-        }
-      />
-      <TextField
-        label="Body content"
-        multiline
-        rows={4}
-        value={activeStory.content}
-        onChange={(_, value) =>
-          updateStory(activeStory.id, (story) => ({
-            ...story,
-            content: value || ''
-          }))
-        }
-      />
-      <TextField
-        label="Bullet points (one per line)"
-        multiline
-        rows={4}
-        value={activeStory.bullets.join('\n')}
-        onChange={(_, value) =>
-          updateStory(activeStory.id, (story) => ({
-            ...story,
-            bullets: value ? value.split('\n').map((item) => item.trim()).filter(Boolean) : []
+            showBullets: !!checked
           }))
         }
       />
       <ImagePicker
         storyId={activeStory.id}
         imageUrl={activeStory.image.url}
+        context={context}
         onChange={(id, url) =>
           updateStory(id, (story) => ({
             ...story,
@@ -360,96 +312,6 @@ const StoryManagerPanel: React.FC<IStoryManagerPanelProps> = ({
           }))
         }
       />
-      <Toggle
-        label="Use asymmetric corner highlight"
-        checked={activeStory.image.singleCorner}
-        onChange={(_, checked) =>
-          updateStory(activeStory.id, (story) => ({
-            ...story,
-            image: {
-              ...story.image,
-              singleCorner: !!checked
-            }
-          }))
-        }
-      />
-      {renderPositionControls('Image position', activeStory.image.position, (pos) =>
-        updateStory(activeStory.id, (story) => ({
-          ...story,
-          image: {
-            ...story.image,
-            position: pos
-          }
-        }))
-      )}
-      {renderSizeControls(
-        'Image size',
-        activeStory.image.size,
-        (size) =>
-          updateStory(activeStory.id, (story) => ({
-            ...story,
-            image: {
-              ...story.image,
-              size
-            }
-          })),
-        { min: 40, max: 120 },
-        { min: 200, max: 640 }
-      )}
-      {renderPositionControls('Text frame position', activeStory.textFrame.position, (pos) =>
-        updateStory(activeStory.id, (story) => ({
-          ...story,
-          textFrame: {
-            ...story.textFrame,
-            position: pos
-          }
-        }))
-      )}
-      {renderSizeControls(
-        'Text frame size',
-        activeStory.textFrame.size,
-        (size) =>
-          updateStory(activeStory.id, (story) => ({
-            ...story,
-            textFrame: {
-              ...story.textFrame,
-              size
-            }
-          })),
-        { min: 50, max: 120 },
-        { min: 160, max: 600 }
-      )}
-      <Stack horizontal tokens={{ childrenGap: 16 }}>
-        <FontIcon iconName="Font" className={styles.fontIcon} />
-        <span className={styles.fontSectionLabel}>Typography</span>
-      </Stack>
-      {renderTypographyControls('Title', activeStory.textFrame.titleFont, (font) =>
-        updateStory(activeStory.id, (story) => ({
-          ...story,
-          textFrame: {
-            ...story.textFrame,
-            titleFont: font
-          }
-        }))
-      )}
-      {renderTypographyControls('Body', activeStory.textFrame.bodyFont, (font) =>
-        updateStory(activeStory.id, (story) => ({
-          ...story,
-          textFrame: {
-            ...story.textFrame,
-            bodyFont: font
-          }
-        }))
-      )}
-      {renderTypographyControls('Bullet', activeStory.textFrame.bulletFont, (font) =>
-        updateStory(activeStory.id, (story) => ({
-          ...story,
-          textFrame: {
-            ...story.textFrame,
-            bulletFont: font
-          }
-        }))
-      )}
     </div>
   ) : (
     <div className={styles.storyEditorPlaceholder}>Create a story to start editing.</div>
