@@ -20,6 +20,26 @@ const ensureRichText = (value?: string, fallback?: string): string => {
   return `<p>${fallback}</p>`;
 };
 
+const getBulletMarkup = (story: IStoryCard): string => {
+  const fallbackList = `<ul>${story.bullets
+    .map((bullet) => `<li>${bullet}</li>`)
+    .join('')}</ul>`;
+
+  if (story.showBullets) {
+    return ensureRichText(story.bulletsRichText, fallbackList);
+  }
+
+  const fallbackText = story.bullets.map((bullet) => `<p>${bullet}</p>`).join('');
+  if (story.bulletsRichText) {
+    return story.bulletsRichText
+      .replace(/<\/?ul[^>]*>/gi, '')
+      .replace(/<li[^>]*>/gi, '<p>')
+      .replace(/<\/li>/gi, '</p>');
+  }
+
+  return fallbackText;
+};
+
 const IpgContenthero: React.FC<IIpgContentheroProps> = ({
   stories,
   isEditMode,
@@ -43,12 +63,35 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
 
   const renderStory = (story: IStoryCard, index: number): React.ReactElement => {
     const isImageLeft = index % 2 === 1;
+    const textColumnClass = [
+      styles.storyColumn,
+      story.hoverEffects?.text ? styles.textHoverEnabled : ''
+    ]
+      .filter(Boolean)
+      .join(' ');
+    const bulletClass = [
+      styles.storyBullets,
+      story.showBullets ? '' : styles.bulletsAsText
+    ]
+      .filter(Boolean)
+      .join(' ');
+    const imageClassName = [
+      styles.storyImage,
+      story.image.singleCorner
+        ? story.image.cornerReversed
+          ? styles.singleCornerRight
+          : styles.singleCornerLeft
+        : '',
+      story.hoverEffects?.image ? styles.imageHoverEnabled : ''
+    ]
+      .filter(Boolean)
+      .join(' ');
     return (
       <article
         key={story.id}
         className={`${styles.storyRow} ${isImageLeft ? styles.reversed : ''}`}
       >
-        <div className={styles.storyColumn} style={textStyle(story)}>
+        <div className={textColumnClass} style={textStyle(story)}>
           <div
             className={styles.storyTitle}
             style={{
@@ -70,27 +113,20 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
             }}
           />
           <div
-            className={`${styles.storyBullets} ${
-              story.showBullets ? '' : styles.bulletsAsText
-            }`}
+            className={bulletClass}
             style={{
               '--accentColor': story.accentColor,
               fontFamily: fontFamilyMap[story.textFrame.bulletFont.family],
               fontSize: story.textFrame.bulletFont.size
             } as React.CSSProperties}
             dangerouslySetInnerHTML={{
-              __html: ensureRichText(
-                story.bulletsRichText,
-                `<ul>${story.bullets.map((item) => `<li>${item}</li>`).join('')}</ul>`
-              )
+              __html: getBulletMarkup(story)
             }}
           />
         </div>
         <div className={styles.storyColumn}>
           <div
-            className={`${styles.storyImage} ${
-              story.image.singleCorner ? styles.singleCorner : ''
-            }`}
+            className={imageClassName}
             style={imageFrameStyle(story)}
           >
             {story.image.url ? (

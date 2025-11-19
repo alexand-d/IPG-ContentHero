@@ -93,6 +93,21 @@ const StoryLayoutConfigurator: React.FC<IStoryLayoutConfiguratorProps> = ({
             }))
           }
         />
+        {activeStory.image.singleCorner && (
+          <Toggle
+            label="Reverse corner orientation"
+            checked={activeStory.image.cornerReversed}
+            onChange={(_, checked) =>
+              updateStory(activeStory.id, (story) => ({
+                ...story,
+                image: {
+                  ...story.image,
+                  cornerReversed: !!checked
+                }
+              }))
+            }
+          />
+        )}
         <Stack tokens={{ childrenGap: 12 }}>
           <Slider
             label="Image X offset"
@@ -329,6 +344,32 @@ const StoryLayoutConfigurator: React.FC<IStoryLayoutConfiguratorProps> = ({
             }
           />
         </Stack>
+        <Toggle
+          label="Image hover effect"
+          checked={activeStory.hoverEffects?.image}
+          onChange={(_, checked) =>
+            updateStory(activeStory.id, (story) => ({
+              ...story,
+              hoverEffects: {
+                ...story.hoverEffects,
+                image: !!checked
+              }
+            }))
+          }
+        />
+        <Toggle
+          label="Text hover effect"
+          checked={activeStory.hoverEffects?.text}
+          onChange={(_, checked) =>
+            updateStory(activeStory.id, (story) => ({
+              ...story,
+              hoverEffects: {
+                ...story.hoverEffects,
+                text: !!checked
+              }
+            }))
+          }
+        />
       </div>
     </div>
   );

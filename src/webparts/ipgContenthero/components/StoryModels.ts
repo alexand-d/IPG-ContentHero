@@ -42,10 +42,15 @@ export interface IStoryCard {
     url: string;
     altText: string;
     singleCorner: boolean;
+    cornerReversed: boolean;
     position: ICoordinateControl;
     size: ISizeControl;
   };
   textFrame: IStoryTextFrame;
+  hoverEffects: {
+    text: boolean;
+    image: boolean;
+  };
 }
 
 const toParagraph = (value: string): string => `<p>${value}</p>`;
@@ -55,30 +60,30 @@ const listToHtml = (items: string[]): string =>
 
 const defaultStories = [
   {
-    title: 'Introducing the Next Generation of High-Power Fiber Lasers',
+    title: 'Lorem ipsum dolor sit amet',
     content:
-      'Continuous improvements to our laser architecture have led to the highest performance high-power fiber lasers yet.',
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum elementum nisl ut viverra fringilla.',
     bullets: [
-      'Unmatched power-to-footprint ratio',
-      'Industry-leading energy efficiency',
-      'Improved optical reliability and back reflection protection',
-      'Increased process flexibility'
+      'Curabitur vehicula erat eget urna aliquet',
+      'Sed venenatis nibh in elementum laoreet',
+      'Morbi vitae orci eget neque lobortis',
+      'Duis luctus mi a ultrices faucibus'
     ],
     imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e',
-    imageAlt: 'Product line of high power fiber lasers'
+    imageAlt: 'Technology detail showing lorem ipsum art'
   },
   {
-    title: 'Our Mission is to Deliver Lasers That Meet Your Needs',
+    title: 'Consectetur adipiscing elit lorem',
     content:
-      'Every system is configured for your process with engineering support that travels from the factory to your production line.',
+      'Integer at lacus tempus, ultricies neque id, interdum nibh. Aliquam erat volutpat, vivamus at ligula.',
     bullets: [
-      'Customized beam modes matched to your requirements',
-      'Flexible fiber delivery for easy process integration',
-      'Time & energy sharing maximizes laser utilization',
-      'Cooling flexibility for any environment'
+      'Praesent nec risus ac nulla gravida',
+      'Suspendisse potenti vivamus porta',
+      'Donec id libero sed justo gravida',
+      'Cras convallis ex vitae dui porta'
     ],
     imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475',
-    imageAlt: 'Close up of fiber-optic connectors'
+    imageAlt: 'Abstract industrial lorem ipsum detail'
   }
 ];
 
@@ -107,6 +112,7 @@ const newStory = (index: number): IStoryCard => ({
     url: defaultStories[index]?.imageUrl ?? '',
     altText: defaultStories[index]?.imageAlt ?? 'Story image',
     singleCorner: index % 2 === 1,
+    cornerReversed: false,
     position: {
       x: 0,
       y: 0
@@ -137,6 +143,10 @@ const newStory = (index: number): IStoryCard => ({
       family: 'sans',
       size: 15
     }
+  },
+  hoverEffects: {
+    text: false,
+    image: false
   }
 });
 
