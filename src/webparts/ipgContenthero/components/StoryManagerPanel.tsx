@@ -5,16 +5,15 @@ import {
   Panel,
   PanelType,
   PrimaryButton,
-  Stack,
   TextField,
   Toggle
 } from '@fluentui/react';
 import styles from './IpgContenthero.module.scss';
 import { createStoryTemplate, IStoryCard } from './StoryModels';
 import { FilePicker, IFilePickerResult } from '@pnp/spfx-controls-react/lib/FilePicker';
-import { RichText } from '@pnp/spfx-controls-react/lib/RichText';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import type { BaseComponentContext as LegacyBaseComponentContext } from '@pnp/spfx-controls-react/node_modules/@microsoft/sp-component-base';
+import TextEditorField from './TextEditorField';
 
 export interface IStoryManagerPanelProps {
   isOpen: boolean;
@@ -230,51 +229,69 @@ const StoryManagerPanel: React.FC<IStoryManagerPanelProps> = ({
 
   const panelBody = activeStory ? (
     <div className={styles.storyEditor}>
-      <Stack tokens={{ childrenGap: 8 }}>
-        <span className={styles.editorLabel}>Story title</span>
-        <RichText
-          isEditMode={true}
-          value={activeStory.titleRichText}
-          onChange={(value) => {
-            updateStory(activeStory.id, (story) => ({
-              ...story,
-              titleRichText: value,
-              title: stripHtml(value) || story.title
-            }));
-            return value;
-          }}
-        />
-      </Stack>
-      <Stack tokens={{ childrenGap: 8 }}>
-        <span className={styles.editorLabel}>Body content</span>
-        <RichText
-          isEditMode={true}
-          value={activeStory.bodyRichText}
-          onChange={(value) => {
-            updateStory(activeStory.id, (story) => ({
-              ...story,
-              bodyRichText: value,
-              content: stripHtml(value) || story.content
-            }));
-            return value;
-          }}
-        />
-      </Stack>
-      <Stack tokens={{ childrenGap: 8 }}>
-        <span className={styles.editorLabel}>Bullet points (one per line)</span>
-        <RichText
-          isEditMode={true}
-          value={activeStory.bulletsRichText}
-          onChange={(value) => {
-            updateStory(activeStory.id, (story) => ({
-              ...story,
-              bulletsRichText: value,
-              bullets: extractListItems(value)
-            }));
-            return value;
-          }}
-        />
-      </Stack>
+      <TextEditorField
+        label="Story title"
+        value={activeStory.titleRichText || ''}
+        onChange={(value) =>
+          updateStory(activeStory.id, (story) => ({
+            ...story,
+            titleRichText: value,
+            title: stripHtml(value) || story.title
+          }))
+        }
+        color={activeStory.textColors?.title || '#041c3d'}
+        onColorChange={(newColor) =>
+          updateStory(activeStory.id, (story) => ({
+            ...story,
+            textColors: {
+              ...story.textColors,
+              title: newColor
+            }
+          }))
+        }
+      />
+      <TextEditorField
+        label="Body content"
+        value={activeStory.bodyRichText || ''}
+        onChange={(value) =>
+          updateStory(activeStory.id, (story) => ({
+            ...story,
+            bodyRichText: value,
+            content: stripHtml(value) || story.content
+          }))
+        }
+        color={activeStory.textColors?.body || '#667085'}
+        onColorChange={(newColor) =>
+          updateStory(activeStory.id, (story) => ({
+            ...story,
+            textColors: {
+              ...story.textColors,
+              body: newColor
+            }
+          }))
+        }
+      />
+      <TextEditorField
+        label="Bullet points (one per line)"
+        value={activeStory.bulletsRichText || ''}
+        onChange={(value) =>
+          updateStory(activeStory.id, (story) => ({
+            ...story,
+            bulletsRichText: value,
+            bullets: extractListItems(value)
+          }))
+        }
+        color={activeStory.textColors?.bullets || '#1c2c4d'}
+        onColorChange={(newColor) =>
+          updateStory(activeStory.id, (story) => ({
+            ...story,
+            textColors: {
+              ...story.textColors,
+              bullets: newColor
+            }
+          }))
+        }
+      />
       <Toggle
         label="Display bullet points"
         checked={activeStory.showBullets}

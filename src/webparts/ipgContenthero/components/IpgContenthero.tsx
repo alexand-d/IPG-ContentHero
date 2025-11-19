@@ -5,6 +5,8 @@ import type { IIpgContentheroProps } from './IIpgContentheroProps';
 import { FontFamilyOption, IStoryCard } from './StoryModels';
 import StoryManagerPanel from './StoryManagerPanel';
 
+type HoverStyle = React.CSSProperties & { [key: string]: string | number | undefined };
+
 const fontFamilyMap: Record<FontFamilyOption, string> = {
   sans: '"Segoe UI", "Helvetica Neue", Arial, sans-serif',
   montserrat: '"Montserrat", "Segoe UI", sans-serif'
@@ -18,6 +20,25 @@ const ensureRichText = (value?: string, fallback?: string): string => {
     return '';
   }
   return `<p>${fallback}</p>`;
+};
+
+const hexToRgba = (hex: string, opacity: number): string => {
+  const normalized = hex.replace('#', '');
+  const bigint = parseInt(normalized.length === 3
+    ? normalized
+        .split('')
+        .map((char) => `${char}${char}`)
+        .join('')
+    : normalized, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+const buildShadow = (blur: number, color: string, opacity: number): string => {
+  const offset = Math.max(Math.round(blur / 3), 8);
+  return `0 ${offset}px ${Math.max(blur, 5)}px ${hexToRgba(color, opacity)}`;
 };
 
 const getBulletMarkup = (story: IStoryCard): string => {
@@ -63,9 +84,33 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
 
   const renderStory = (story: IStoryCard, index: number): React.ReactElement => {
     const isImageLeft = index % 2 === 1;
+    const textHoverConfig = story.hoverEffects?.text;
+    const imageHoverConfig = story.hoverEffects?.image;
+    const columnStyle: HoverStyle = {
+      ...textStyle(story)
+    };
+    if (textHoverConfig) {
+      columnStyle['--textHoverDuration'] = `${textHoverConfig.duration}ms`;
+      columnStyle['--textHoverShadow'] = buildShadow(
+        textHoverConfig.shadow.blur,
+        textHoverConfig.shadow.color,
+        textHoverConfig.shadow.opacity
+      );
+    }
+    const imageStyleProps: HoverStyle = {
+      ...imageFrameStyle(story)
+    };
+    if (imageHoverConfig) {
+      imageStyleProps['--imageHoverDuration'] = `${imageHoverConfig.duration}ms`;
+      imageStyleProps['--imageHoverShadow'] = buildShadow(
+        imageHoverConfig.shadow.blur,
+        imageHoverConfig.shadow.color,
+        imageHoverConfig.shadow.opacity
+      );
+    }
     const textColumnClass = [
       styles.storyColumn,
-      story.hoverEffects?.text ? styles.textHoverEnabled : ''
+      textHoverConfig?.enabled ? styles.textHoverEnabled : ''
     ]
       .filter(Boolean)
       .join(' ');
@@ -82,7 +127,7 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
           ? styles.singleCornerRight
           : styles.singleCornerLeft
         : '',
-      story.hoverEffects?.image ? styles.imageHoverEnabled : ''
+      imageHoverConfig?.enabled ? styles.imageHoverEnabled : ''
     ]
       .filter(Boolean)
       .join(' ');
@@ -91,12 +136,13 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
         key={story.id}
         className={`${styles.storyRow} ${isImageLeft ? styles.reversed : ''}`}
       >
-        <div className={textColumnClass} style={textStyle(story)}>
+        <div className={textColumnClass} style={columnStyle}>
           <div
             className={styles.storyTitle}
             style={{
               fontFamily: fontFamilyMap[story.textFrame.titleFont.family],
-              fontSize: story.textFrame.titleFont.size
+              fontSize: story.textFrame.titleFont.size,
+              color: story.textColors?.title || '#041c3d'
             }}
             dangerouslySetInnerHTML={{
               __html: ensureRichText(story.titleRichText, story.title)
@@ -106,7 +152,8 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
             className={styles.storyBody}
             style={{
               fontFamily: fontFamilyMap[story.textFrame.bodyFont.family],
-              fontSize: story.textFrame.bodyFont.size
+              fontSize: story.textFrame.bodyFont.size,
+              color: story.textColors?.body || '#667085'
             }}
             dangerouslySetInnerHTML={{
               __html: ensureRichText(story.bodyRichText, story.content)
@@ -117,7 +164,8 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
             style={{
               '--accentColor': story.accentColor,
               fontFamily: fontFamilyMap[story.textFrame.bulletFont.family],
-              fontSize: story.textFrame.bulletFont.size
+              fontSize: story.textFrame.bulletFont.size,
+              color: story.textColors?.bullets || '#1c2c4d'
             } as React.CSSProperties}
             dangerouslySetInnerHTML={{
               __html: getBulletMarkup(story)
@@ -127,7 +175,7 @@ const IpgContenthero: React.FC<IIpgContentheroProps> = ({
         <div className={styles.storyColumn}>
           <div
             className={imageClassName}
-            style={imageFrameStyle(story)}
+            style={imageStyleProps}
           >
             {story.image.url ? (
               <img src={story.image.url} alt={story.image.altText} />

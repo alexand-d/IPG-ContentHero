@@ -56,6 +56,7 @@ export default class IpgContentheroWebPart extends BaseClientSideWebPart<IIpgCon
     if (!this.properties.stories || this.properties.stories.length === 0) {
       this.properties.stories = getDefaultStories();
     }
+    this.properties.stories = (this.properties.stories || []).map(this._normalizeStory);
     if (!this.properties.backgroundColor) {
       this.properties.backgroundColor = '#f7f9fb';
     }
@@ -64,7 +65,7 @@ export default class IpgContentheroWebPart extends BaseClientSideWebPart<IIpgCon
   }
 
   private readonly _handleStoriesUpdate = (stories: IStoryCard[]): void => {
-    this.properties.stories = stories;
+    this.properties.stories = stories.map(this._normalizeStory);
     if (this.context.propertyPane.isPropertyPaneOpen()) {
       this.context.propertyPane.refresh();
     }
@@ -133,4 +134,41 @@ export default class IpgContentheroWebPart extends BaseClientSideWebPart<IIpgCon
       ]
     };
   }
+
+  private readonly _normalizeStory = (story: IStoryCard): IStoryCard => {
+    const textHover = story.hoverEffects?.text;
+    const imageHover = story.hoverEffects?.image;
+    return {
+      ...story,
+      textColors: {
+        title: story.textColors?.title ?? '#041c3d',
+        body: story.textColors?.body ?? '#667085',
+        bullets: story.textColors?.bullets ?? '#1c2c4d'
+      },
+      image: {
+        ...story.image,
+        cornerReversed: story.image?.cornerReversed ?? false
+      },
+      hoverEffects: {
+        text: {
+          enabled: !!textHover?.enabled,
+          duration: textHover?.duration ?? 250,
+          shadow: {
+            color: textHover?.shadow?.color ?? '#000000',
+            opacity: textHover?.shadow?.opacity ?? 0.15,
+            blur: textHover?.shadow?.blur ?? 25
+          }
+        },
+        image: {
+          enabled: !!imageHover?.enabled,
+          duration: imageHover?.duration ?? 350,
+          shadow: {
+            color: imageHover?.shadow?.color ?? '#000000',
+            opacity: imageHover?.shadow?.opacity ?? 0.2,
+            blur: imageHover?.shadow?.blur ?? 35
+          }
+        }
+      }
+    };
+  };
 }

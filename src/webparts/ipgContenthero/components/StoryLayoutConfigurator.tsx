@@ -7,7 +7,8 @@ import {
   Toggle
 } from '@fluentui/react';
 import styles from './IpgContenthero.module.scss';
-import { FontFamilyOption, IStoryCard } from './StoryModels';
+import { FontFamilyOption, IHoverEffectConfig, IStoryCard } from './StoryModels';
+import HexColorInput from './HexColorInput';
 
 export interface IStoryLayoutConfiguratorProps {
   stories: IStoryCard[];
@@ -57,6 +58,19 @@ const StoryLayoutConfigurator: React.FC<IStoryLayoutConfiguratorProps> = ({
   if (!activeStory) {
     return <div className={styles.storyEditorPlaceholder}>Add stories to configure layout.</div>;
   }
+
+  const updateHover = (
+    target: 'text' | 'image',
+    updater: (config: IHoverEffectConfig) => IHoverEffectConfig
+  ): void => {
+    updateStory(activeStory.id, (story) => ({
+      ...story,
+      hoverEffects: {
+        ...story.hoverEffects,
+        [target]: updater(story.hoverEffects[target])
+      }
+    }));
+  };
 
   return (
     <div className={styles.layoutConfigurator}>
@@ -346,30 +360,150 @@ const StoryLayoutConfigurator: React.FC<IStoryLayoutConfiguratorProps> = ({
         </Stack>
         <Toggle
           label="Image hover effect"
-          checked={activeStory.hoverEffects?.image}
+          checked={activeStory.hoverEffects.image.enabled}
           onChange={(_, checked) =>
-            updateStory(activeStory.id, (story) => ({
-              ...story,
-              hoverEffects: {
-                ...story.hoverEffects,
-                image: !!checked
-              }
+            updateHover('image', (config) => ({
+              ...config,
+              enabled: !!checked
             }))
           }
         />
+        {activeStory.hoverEffects.image.enabled && (
+          <>
+            <Slider
+              label="Image hover duration (ms)"
+              min={100}
+              max={2000}
+              step={50}
+              value={activeStory.hoverEffects.image.duration}
+              showValue
+              onChange={(value) =>
+                updateHover('image', (config) => ({
+                  ...config,
+                  duration: value
+                }))
+              }
+            />
+            <Slider
+              label="Image hover shadow blur (px)"
+              min={0}
+              max={120}
+              value={activeStory.hoverEffects.image.shadow.blur}
+              showValue
+              onChange={(value) =>
+                updateHover('image', (config) => ({
+                  ...config,
+                  shadow: {
+                    ...config.shadow,
+                    blur: value
+                  }
+                }))
+              }
+            />
+            <Slider
+              label="Image hover shadow opacity (%)"
+              min={0}
+              max={100}
+              value={Math.round(activeStory.hoverEffects.image.shadow.opacity * 100)}
+              showValue
+              onChange={(value) =>
+                updateHover('image', (config) => ({
+                  ...config,
+                  shadow: {
+                    ...config.shadow,
+                    opacity: value / 100
+                  }
+                }))
+              }
+            />
+            <HexColorInput
+              label="Image hover shadow color"
+              color={activeStory.hoverEffects.image.shadow.color}
+              onChange={(newColor) =>
+                updateHover('image', (config) => ({
+                  ...config,
+                  shadow: {
+                    ...config.shadow,
+                    color: newColor
+                  }
+                }))
+              }
+            />
+          </>
+        )}
         <Toggle
           label="Text hover effect"
-          checked={activeStory.hoverEffects?.text}
+          checked={activeStory.hoverEffects.text.enabled}
           onChange={(_, checked) =>
-            updateStory(activeStory.id, (story) => ({
-              ...story,
-              hoverEffects: {
-                ...story.hoverEffects,
-                text: !!checked
-              }
+            updateHover('text', (config) => ({
+              ...config,
+              enabled: !!checked
             }))
           }
         />
+        {activeStory.hoverEffects.text.enabled && (
+          <>
+            <Slider
+              label="Text hover duration (ms)"
+              min={100}
+              max={2000}
+              step={50}
+              value={activeStory.hoverEffects.text.duration}
+              showValue
+              onChange={(value) =>
+                updateHover('text', (config) => ({
+                  ...config,
+                  duration: value
+                }))
+              }
+            />
+            <Slider
+              label="Text hover shadow blur (px)"
+              min={0}
+              max={120}
+              value={activeStory.hoverEffects.text.shadow.blur}
+              showValue
+              onChange={(value) =>
+                updateHover('text', (config) => ({
+                  ...config,
+                  shadow: {
+                    ...config.shadow,
+                    blur: value
+                  }
+                }))
+              }
+            />
+            <Slider
+              label="Text hover shadow opacity (%)"
+              min={0}
+              max={100}
+              value={Math.round(activeStory.hoverEffects.text.shadow.opacity * 100)}
+              showValue
+              onChange={(value) =>
+                updateHover('text', (config) => ({
+                  ...config,
+                  shadow: {
+                    ...config.shadow,
+                    opacity: value / 100
+                  }
+                }))
+              }
+            />
+            <HexColorInput
+              label="Text hover shadow color"
+              color={activeStory.hoverEffects.text.shadow.color}
+              onChange={(newColor) =>
+                updateHover('text', (config) => ({
+                  ...config,
+                  shadow: {
+                    ...config.shadow,
+                    color: newColor
+                  }
+                }))
+              }
+            />
+          </>
+        )}
       </div>
     </div>
   );

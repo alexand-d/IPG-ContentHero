@@ -35,6 +35,11 @@ export interface IStoryCard {
   bullets: string[];
   accentColor: string;
   showBullets: boolean;
+  textColors: {
+    title: string;
+    body: string;
+    bullets: string;
+  };
   titleRichText?: string;
   bodyRichText?: string;
   bulletsRichText?: string;
@@ -48,8 +53,18 @@ export interface IStoryCard {
   };
   textFrame: IStoryTextFrame;
   hoverEffects: {
-    text: boolean;
-    image: boolean;
+    text: IHoverEffectConfig;
+    image: IHoverEffectConfig;
+  };
+}
+
+export interface IHoverEffectConfig {
+  enabled: boolean;
+  duration: number;
+  shadow: {
+    color: string;
+    opacity: number;
+    blur: number;
   };
 }
 
@@ -92,21 +107,26 @@ const newStory = (index: number): IStoryCard => ({
   title: defaultStories[index]?.title ?? 'New story title',
   content:
     defaultStories[index]?.content ??
-    'Use the configuration panel to provide an overview for this story card.',
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a pulvinar sapien, sed blandit nisl.',
   bullets:
     defaultStories[index]?.bullets?.slice() ?? [
-      'Add a benefit',
-      'Add a differentiator'
+      'Lorem ipsum dolor sit amet',
+      'Consectetur adipiscing elit'
     ],
   accentColor: '#f26c2b',
   showBullets: true,
+  textColors: {
+    title: '#041c3d',
+    body: '#667085',
+    bullets: '#1c2c4d'
+  },
   titleRichText: toParagraph(defaultStories[index]?.title ?? 'New story title'),
   bodyRichText: toParagraph(
     defaultStories[index]?.content ??
-      'Use the configuration panel to provide an overview for this story card.'
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque a pulvinar sapien, sed blandit nisl.'
   ),
   bulletsRichText: listToHtml(
-    defaultStories[index]?.bullets?.slice() ?? ['Add a benefit', 'Add a differentiator']
+    defaultStories[index]?.bullets?.slice() ?? ['Lorem ipsum dolor sit amet', 'Consectetur adipiscing elit']
   ),
   image: {
     url: defaultStories[index]?.imageUrl ?? '',
@@ -145,8 +165,24 @@ const newStory = (index: number): IStoryCard => ({
     }
   },
   hoverEffects: {
-    text: false,
-    image: false
+    text: {
+      enabled: false,
+      duration: 250,
+      shadow: {
+        color: '#000000',
+        opacity: 0.15,
+        blur: 25
+      }
+    },
+    image: {
+      enabled: false,
+      duration: 350,
+      shadow: {
+        color: '#000000',
+        opacity: 0.2,
+        blur: 35
+      }
+    }
   }
 });
 

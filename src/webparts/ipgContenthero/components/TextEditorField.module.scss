@@ -1,0 +1,32 @@
+.editorContainer {
+  margin-bottom: 1rem;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e1e4ea;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background: #f7f7f7;
+}
+
+.editorSurface {
+  border: 1px solid #e1e4ea;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  min-height: 120px;
+  padding: 12px;
+  background: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.toolbarButton {
+  min-width: 32px;
+}
+
+.colorRow {
+  margin-top: 8px;
+}
